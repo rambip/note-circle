@@ -14,11 +14,12 @@ jobs:
             target: wasm32-unknown-unknown
             override: true
 
-      - uses: Swatinem/rust-cache@v2
       - uses: jetli/trunk-action@v0.4.0
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: Trunk Build
-        run: trunk build --release --public-url note-circle
+        run: trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
 
       - name: upload result
         uses: actions/upload-pages-artifact@v2
