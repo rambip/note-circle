@@ -18,7 +18,7 @@ jobs:
       - uses: jetli/trunk-action@v0.4.0
 
       - name: Trunk Build
-        run: trunk build --release --target web
+        run: trunk build --release 
 
       - name: upload result
         uses: actions/upload-pages-artifact@v2
