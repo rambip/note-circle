@@ -18,7 +18,7 @@ jobs:
       - uses: jetli/trunk-action@v0.4.0
 
       - name: Trunk Build
-        run: trunk build --release 
+        run: trunk build --release --public-url "https://github.com/note-circle"
 
       - name: upload result
         uses: actions/upload-pages-artifact@v2
