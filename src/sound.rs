@@ -1,9 +1,12 @@
 use bevy::prelude::*;
+use bevy::audio::PlaybackMode;
 
 use bevy::audio::Source;
 use bevy::utils::Duration;
 
 use std::f32::consts::PI;
+
+use super::{NotePosition, BaseNote};
 
 static SAMPLE_RATE: u32 = 44_100;
 
@@ -30,6 +33,27 @@ pub static SAX_SPECTRUM: [Sinusoid; 8] = [
     Sinusoid {amplitude: 0.25, phase: PI},
     Sinusoid {amplitude: 0.0, phase: PI},
 ];
+
+// FIXME: les notes ne sont pas encore générées quand cette fonction est appelée
+pub fn create_samples(base_note: Res<BaseNote>,
+                      mut assets: ResMut<Assets<Synth>>,
+                      mut commands: Commands,
+                      query: Query<(Entity, &NotePosition)>,
+                      ) {
+
+    for (e, note) in &query {
+        let sound = AudioSourceBundle {
+            source: assets.add(Synth::new(note.to_freq(base_note.0), TRIANGLE_SPECTRUM.into())),
+            settings: PlaybackSettings {
+                mode: PlaybackMode::Remove,
+                ..Default::default()
+            }
+        };
+
+        commands.entity(e).remove::<AudioSink>();
+        commands.entity(e).insert(sound);
+    }
+}
 
 #[derive(Clone, Copy, Default)]
 pub struct Sinusoid {
@@ -82,7 +106,7 @@ impl Iterator for SynthDecoder {
     type Item = f32;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // we loop back round to 0 to avoid floating point inaccuracies
+        // we loop back round to 2pi to avoid floating point inaccuracies
         self.current_phase = (self.current_phase + self.step)%(2.0 * PI);
         Some(
         self.spectrum

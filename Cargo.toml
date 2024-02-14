@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.12.1"}
 
-[target.'cfg(target = "wasm32-unknown-unknown")'.dependencies]
-bevy = { version = "0.12.1", features = ["dynamic_linking"] }
+[target.'cfg(not(target = "wasm32-unknown-unknown"))'.dependencies]
+bevy = { version = "0.12.1"}
 
 bevy_asset_loader = { version = "0.16", features = ["standard_dynamic_assets"] }
 
