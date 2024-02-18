@@ -37,7 +37,7 @@ pub fn keyboard_input_system(
     mut commands: Commands, 
     mut base_note: ResMut<BaseNote>,
     keyboard_input: Res<Input<KeyCode>>, 
-    query: Query<(Entity, &NotePosition)>
+    query: Query<(Entity, &AudioSink, &NotePosition)>
 ) {
 
     if keyboard_input.just_pressed(KeyCode::Right) {
@@ -51,23 +51,27 @@ pub fn keyboard_input_system(
         return
     }
 
-    for (e, note) in &query {
+    for (e, sink, note) in &query {
         if note.height() == 0 {
             let k = KEYS1[note.oclock() as usize];
             if keyboard_input.pressed(k) {
                 commands.entity(e).insert(Playing);
+                sink.play()
             }
             else {
                 commands.entity(e).remove::<Playing>();
+                sink.pause()
             }
         }
         if note.height() == 1 {
             let k = KEYS2[note.oclock() as usize];
             if keyboard_input.pressed(k) {
                 commands.entity(e).insert(Playing);
+                sink.play()
             }
             else {
                 commands.entity(e).remove::<Playing>();
+                sink.pause()
             }
         }
     }

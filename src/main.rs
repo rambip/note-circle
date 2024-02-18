@@ -65,6 +65,7 @@ fn main() {
             global_volume: GlobalVolume::new(0.2),
             ..default()
         }))
+        .add_plugins(bevy_framepace::FramepacePlugin)
         .add_audio_source::<Synth>()
         .add_event::<UpdateNoteMapping>()
         .add_systems(Startup, setup)
@@ -75,7 +76,6 @@ fn main() {
 
 
         .add_systems(Update, keyboard_input_system)
-        .add_systems(Update, play_notes)
         .add_systems(Update, draw_notes)
         .run();
 }
@@ -108,16 +108,16 @@ pub static NOTE_NAMES: [&'static str; 12] =
 
 
 
-fn play_notes(
-              new_notes: Query<&AudioSink, With<Playing>>,
-              dead_notes: Query<&AudioSink, Without<Playing>>
-              ) {
-    for sink in &new_notes {
-        sink.play()
-    }
-    for sink in &dead_notes {
-        sink.pause()
-    }
+// fn play_notes(
+//               new_notes: Query<&AudioSink, With<Playing>>,
+//               dead_notes: Query<&AudioSink, Without<Playing>>
+//               ) {
+//     for sink in &new_notes {
+//         sink.play()
+//     }
+//     for sink in &dead_notes {
+//         sink.pause()
+//     }
 
-}
+// }
 

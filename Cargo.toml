@@ -1,17 +1,75 @@
 [package]
-name = "bevy-audio"
+name = "note-circle"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-bevy = { version = "0.12.1"}
+bevy_framepace = {git= "https://github.com/aevyrie/bevy_framepace", rev="6ec5af15e4842c15e8267cd7767fed0e975c2a1a"}
+bevy_asset_loader = { version = "0.19", features = ["standard_dynamic_assets"] }
+bevy_ecs = "0.12.0"
+bevy_reflect = "0.12.0"
+bevy_asset = "0.12.0"
 
-[target.'cfg(not(target = "wasm32-unknown-unknown"))'.dependencies]
-bevy = { version = "0.12.1"}
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.bevy]
+version = "0.12.1"
 
-bevy_asset_loader = { version = "0.16", features = ["standard_dynamic_assets"] }
+default-features = false
+
+features = [
+ # Bevy functionality:
+ "multi-threaded",     # Run with multithreading
+ #"bevy_asset",         # Assets management
+ "bevy_audio",         # Builtin audio
+ #"bevy_gilrs",         # Gamepad input support
+ "bevy_render",        # Rendering framework core
+ #"bevy_core_pipeline", # Common rendering abstractions
+ #"bevy_gizmos",        # Support drawing debug lines and shapes
+ "bevy_text",          # Text/font rendering
+ #"bevy_ui",            # UI toolkit
+ "default_font",       # Embed a minimal default font for text/UI
+
+ # Platform-specific:
+ "x11",                   # Linux: Support X11 windowing system
+ #"webgl2",                # Web: use WebGL2 instead of WebGPU
+
+ # Platform-specific:
+ #"wayland",              # (Linux) Support Wayland windowing system
+
+ # Development/Debug features:
+ "dynamic_linking",   # Dynamic linking for faster compile-times
+ #"trace",             # Enable tracing for performance measurement
+]
+
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.bevy]
+version = "0.12"
+# Disable the default features if there are any that you do not want
+default-features = false
+
+features = [
+  # Bevy functionality:
+  #"bevy_asset",         # Assets management
+  "bevy_audio",         # Builtin audio
+  #"bevy_gilrs",         # Gamepad input support
+  "bevy_render",        # Rendering framework core
+  "bevy_core_pipeline", # Common rendering abstractions
+  #"bevy_gizmos",        # Support drawing debug lines and shapes
+  "bevy_text",          # Text/font rendering
+  #"bevy_ui",            # UI toolkit
+  "default_font",       # Embed a minimal default font for text/UI
+
+  # Platform-specific:
+  #"x11",                   # Linux: Support X11 windowing system
+  "webgl2",                # Web: use WebGL2 instead of WebGPU
+
+  # Development/Debug features:
+  #"dynamic_linking",   # Dynamic linking for faster compile-times
+  #"trace",             # Enable tracing for performance measurement
+]
+
+
+
 
 
 # Enable a small amount of optimization in debug mode
@@ -20,5 +78,9 @@ opt-level = 1
 
 # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 1
 
+
+[profile.release]
+lto = "thin"
+opt-level = 's'

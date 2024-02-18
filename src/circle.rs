@@ -28,7 +28,11 @@ pub fn create_note_names(
         commands.entity(e).despawn();
     }
 
-    let text_style : TextStyle = Default::default();
+    let text_style : TextStyle = TextStyle {
+        color: Color::WHITE,
+        font_size: 18.,
+        font: Default::default(),
+    };
 
     for (p, angle) in &positions {
         if p.height() == 0 {

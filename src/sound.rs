@@ -10,29 +10,43 @@ use super::{NotePosition, BaseNote};
 
 static SAMPLE_RATE: u32 = 44_100;
 
-pub static SINE_SPECTRUM: [Sinusoid; 2] = [
-    Sinusoid::NULL,
-    Sinusoid {amplitude: 1.0, phase: 0.},
+pub static SINE_SPECTRUM: [Sinusoid; 3] = [
+    Sinusoid {amplitude: 0.25, phase: 0., frequency_multiple: 1.0},
+    Sinusoid {amplitude: 0.23, phase: 0., frequency_multiple: 1.03},
+    Sinusoid {amplitude: 0.21, phase: 0., frequency_multiple: 1.05},
 ];
 
-pub static TRIANGLE_SPECTRUM: [Sinusoid; 5] = [
-    Sinusoid::NULL,
-    Sinusoid {amplitude: 1.0, phase: 0.},
-    Sinusoid {amplitude: 0.5, phase: PI},
-    Sinusoid {amplitude: 0.11, phase: 0.},
-    Sinusoid {amplitude: 0.05, phase: PI},
-];
+// pub static TRIANGLE_SPECTRUM: [Sinusoid; 5] = [
+//     Sinusoid::NULL,
+//     Sinusoid {amplitude: 0.5, phase: 0.},
+//     Sinusoid {amplitude: 0.25, phase: PI},
+//     Sinusoid {amplitude: 0.05, phase: 0.},
+//     Sinusoid {amplitude: 0.02, phase: PI},
+// ];
 
-pub static SAX_SPECTRUM: [Sinusoid; 8] = [
-    Sinusoid::NULL,
-    Sinusoid {amplitude: 1.0, phase: 0.},
-    Sinusoid {amplitude: 0.5, phase: PI},
-    Sinusoid {amplitude: 0.1, phase: 0.},
-    Sinusoid {amplitude: 0.4, phase: 0.},
-    Sinusoid {amplitude: 0.1, phase: 0.},
-    Sinusoid {amplitude: 0.25, phase: PI},
-    Sinusoid {amplitude: 0.0, phase: PI},
-];
+// pub static SAX_SPECTRUM: [Sinusoid; 21] = [
+//     Sinusoid::NULL,
+//     Sinusoid {amplitude:0.42974835498737607, phase: -3.040638298720167},
+//     Sinusoid {amplitude:0.5232032128896923, phase: -0.3185561184424239},
+//     Sinusoid {amplitude:0.16455222770418948, phase: -2.7127386118570374},
+//     Sinusoid {amplitude:0.41940857280870986, phase: -0.032513108159311264},
+//     Sinusoid {amplitude:0.2037244815842362, phase: 2.744218818630659},
+//     Sinusoid {amplitude:0.13709849851939704, phase: -2.983734880089535},
+//     Sinusoid {amplitude:0.2184466780279849, phase: -2.7789351049301025},
+//     Sinusoid {amplitude:0.21702421804588365, phase: -0.05129480237414914},
+//     Sinusoid {amplitude:0.24383123604430218, phase: -1.0136584546674183},
+//     Sinusoid {amplitude:0.17054145208958676, phase: -1.9926780682697318},
+//     Sinusoid {amplitude:0.09102340082812721, phase: -1.8590703381419607},
+//     Sinusoid {amplitude:0.06549629181234591, phase: -2.4808378267655655},
+//     Sinusoid {amplitude:0.09670327471337731, phase: 0.1468344926846707},
+//     Sinusoid {amplitude:0.10382325864286551, phase: -0.18503120762040676},
+//     Sinusoid {amplitude:0.15342047537704315, phase: -0.8646085739076568},
+//     Sinusoid {amplitude:0.13924698203713623, phase: 2.045216000657128},
+//     Sinusoid {amplitude:0.09533112782360806, phase: 1.1155465441094896},
+//     Sinusoid {amplitude:0.05752474568031794, phase: 1.3575149512854667},
+//     Sinusoid {amplitude:0.06032919698209148, phase: -2.222642381089361},
+//     Sinusoid {amplitude:0.05716175751735669, phase: -2.9076408446978794},
+// ];
 
 // FIXME: les notes ne sont pas encore générées quand cette fonction est appelée
 pub fn create_samples(base_note: Res<BaseNote>,
@@ -43,7 +57,7 @@ pub fn create_samples(base_note: Res<BaseNote>,
 
     for (e, note) in &query {
         let sound = AudioSourceBundle {
-            source: assets.add(Synth::new(note.to_freq(base_note.0), TRIANGLE_SPECTRUM.into())),
+            source: assets.add(Synth::new(note.to_freq(base_note.0), SINE_SPECTRUM.into())),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Remove,
                 ..Default::default()
@@ -59,14 +73,13 @@ pub fn create_samples(base_note: Res<BaseNote>,
 pub struct Sinusoid {
     amplitude: f32,
     phase: f32,
+    frequency_multiple: f32,
 }
 
 impl Sinusoid {
-    fn generate_signal(&self, current_phase: f32, order: usize) -> f32 {
-        self.amplitude * f32::cos((order as f32) * current_phase - self.phase)
+    fn generate_signal(&self, current_phase: f32) -> f32 {
+        self.amplitude * f32::cos(self.frequency_multiple * current_phase - self.phase)
     }
-
-   const NULL: Sinusoid = Sinusoid {amplitude: 0., phase: 0.};
 }
 
 #[derive(Asset, TypePath)]
@@ -111,8 +124,7 @@ impl Iterator for SynthDecoder {
         Some(
         self.spectrum
             .iter()
-            .enumerate()
-            .map(|(k, coeff)| coeff.generate_signal(self.current_phase, k))
+            .map(|coeff| coeff.generate_signal(self.current_phase))
             .sum::<f32>()
         )
     }
