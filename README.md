@@ -15,6 +15,6 @@ Right now, there are 2 ways to visualize chords:
 
 There may be more to come !
 
-# Where ?
+# How ?
 
 Made with love with [bevy](https://bevyengine.org/)
