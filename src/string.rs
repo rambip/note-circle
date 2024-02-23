@@ -55,7 +55,7 @@ impl StringState {
         for i in 0..n {
             let p = Vec2::new(
                 -250. + i as f32 / n as f32 * p.length,
-                -250. + self.current[i]*150.
+                -250. + self.current[i]*250.
             );
             gizmos.circle_2d(p, 1., Color::BLUE);
         }
@@ -104,7 +104,6 @@ fn compute_acceleration(p: &StringParams, state: &StringState) -> Vec<f32> {
         if p.junctions.contains(&i) || i==0 || i==p.n_samples-1{
             acc[i] += - p.spring_coeff * state.current[i]
                       - p.solid_friction_coeff * time_derivative(i)
-                      - 1.1*time_derivative(i)*time_derivative(i).abs()
             ;
         }
     }

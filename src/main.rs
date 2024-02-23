@@ -124,12 +124,12 @@ fn init_string(
             params: StringParams {
                 length: 500.,
                 n_samples: N,
-                dt: 0.01,
+                dt: 0.005,
                 c: 50.,
                 junctions: vec![],
                 spring_coeff: 0.00,
                 solid_friction_coeff: 10.,
-                liquid_friction_coeff: 0.01,
+                liquid_friction_coeff: 0.005,
                 steps_per_render: 100,
             },
             state: StringState::new_flat(N)
