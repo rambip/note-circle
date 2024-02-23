@@ -1,3 +1,5 @@
+<https://rambip.github.io/note-circle>
+
 # What ?
 
 An app to visualize melody and chords.
@@ -13,10 +15,6 @@ Right now, there are 2 ways to visualize chords:
 
 There may be more to come !
 
-# Whrere ?
-
-<https://rambip.github.io/note-circle>
-
-# How ?
+# Where ?
 
 Made with love with [bevy](https://bevyengine.org/)
