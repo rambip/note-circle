@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::{Playing, NotePosition, BaseNote, UpdateNoteMapping};
+use super::{Playing, NotePosition, BaseNote, UpdateNoteMapping, ChordChange};
 
 static KEYS2: [KeyCode; 12] = [
     KeyCode::Key1, 
@@ -34,10 +34,12 @@ static KEYS1: [KeyCode; 12] = [
 
 pub fn keyboard_input_system(
     mut mapping_changed: EventWriter<UpdateNoteMapping>,
+    mut chord_changed: EventWriter<ChordChange>,
     mut commands: Commands, 
     mut base_note: ResMut<BaseNote>,
     keyboard_input: Res<Input<KeyCode>>, 
-    query: Query<(Entity, &AudioSink, &NotePosition)>
+    query: Query<(Entity, &AudioSink, &NotePosition)>,
+    playing: Query<&Playing>,
 ) {
 
     if keyboard_input.just_pressed(KeyCode::Right) {
@@ -55,7 +57,10 @@ pub fn keyboard_input_system(
         if note.height() == 0 {
             let k = KEYS1[note.oclock() as usize];
             if keyboard_input.pressed(k) {
-                commands.entity(e).insert(Playing);
+                if playing.get(e).is_err() {
+                    chord_changed.send(ChordChange);
+                    commands.entity(e).insert(Playing);
+                }
                 sink.play()
             }
             else {
@@ -66,7 +71,10 @@ pub fn keyboard_input_system(
         if note.height() == 1 {
             let k = KEYS2[note.oclock() as usize];
             if keyboard_input.pressed(k) {
-                commands.entity(e).insert(Playing);
+                if playing.get(e).is_err() {
+                    chord_changed.send(ChordChange);
+                    commands.entity(e).insert(Playing);
+                }
                 sink.play()
             }
             else {
