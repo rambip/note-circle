@@ -24,7 +24,7 @@ features = [
  #"bevy_gilrs",         # Gamepad input support
  "bevy_render",        # Rendering framework core
  #"bevy_core_pipeline", # Common rendering abstractions
- #"bevy_gizmos",        # Support drawing debug lines and shapes
+ "bevy_gizmos",        # Support drawing debug lines and shapes
  "bevy_text",          # Text/font rendering
  #"bevy_ui",            # UI toolkit
  "default_font",       # Embed a minimal default font for text/UI
@@ -54,7 +54,7 @@ features = [
   #"bevy_gilrs",         # Gamepad input support
   "bevy_render",        # Rendering framework core
   "bevy_core_pipeline", # Common rendering abstractions
-  #"bevy_gizmos",        # Support drawing debug lines and shapes
+  "bevy_gizmos",        # Support drawing debug lines and shapes
   "bevy_text",          # Text/font rendering
   #"bevy_ui",            # UI toolkit
   "default_font",       # Embed a minimal default font for text/UI

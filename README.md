@@ -1,11 +1,22 @@
 # What ?
 
-A simple piano-like app.
+An app to visualize melody and chords.
 
-But with a special feature: you can visualize chords on a circle:
+Right now, there are 2 ways to visualize chords:
 
+- on a hour-like circle
 ![](./screenshot/1.jpeg)
+
+- with vibrating strings, similar to that:
+![](./screenshot/propagation.gif)
+
+
+There may be more to come !
 
 # Whrere ?
 
-https://rambip.github.io/note-circle
+<https://rambip.github.io/note-circle>
+
+# How ?
+
+Made with love with [bevy](https://bevyengine.org/)
