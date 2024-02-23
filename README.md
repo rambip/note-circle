@@ -13,7 +13,7 @@ Right now, there are 2 ways to visualize chords:
 
 There may be more to come !
 
-# Whrere ?
+# Where ?
 
 <https://rambip.github.io/note-circle>
 
