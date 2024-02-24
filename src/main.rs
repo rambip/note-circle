@@ -3,7 +3,7 @@ use bevy::audio::AudioPlugin;
 use bevy::audio::AddAudioSource;
 
 #[derive(Component)]
-struct Playing;
+struct Playing(bool);
 
 #[derive(Resource)]
 struct ChordJustChanged(bool);
@@ -108,7 +108,6 @@ fn main() {
 
 
         .add_systems(Update, keyboard_input_system)
-        .add_systems(Update, play_notes)
         .add_systems(Update, draw_notes)
         .add_systems(Update, draw_string)
         .add_systems(Update, update_string)
@@ -130,7 +129,7 @@ fn setup(
             let note_pos = NotePosition::new(i, height);
 
             let angle = Angle(PI/2. - 2. * PI * (i as f32) / 12.);
-            commands.spawn((note_pos, angle));
+            commands.spawn((note_pos, angle, Playing(false)));
         }
     }
 
@@ -191,19 +190,21 @@ struct VibratingString {
 
 fn change_string(
     mut string: Query<(&mut StringState, &mut StringParams)>,
-    notes: Query<&NotePosition, With<Playing>>,
+    notes: Query<(&NotePosition, &Playing)>,
     mut chord_changed: ResMut<ChordJustChanged>,
 ) {
     if !chord_changed.0 {
         return
     }
-    chord_changed.0 = false;
 
+    chord_changed.0 = false;
 
     let (mut s, mut p) = match string.get_single_mut() {
         Ok(a) => a,
         Err(_) => return
     };
+
+    let notes: Vec<_> = notes.iter().filter(|(_, p)| p.0).map(|(x, _)| x).collect();
 
     // FIXME: base_note = 0 ?
     let r0 = notes.iter().map(|note_position| note_position.note(0))
@@ -240,16 +241,3 @@ fn draw_string(
         s.draw(p, gizmos)
     }
 }
-
-fn play_notes(
-    alive_notes: Query<&AudioSink, With<Playing>>,
-    dead_notes: Query<&AudioSink, Without<Playing>>,
-    ) {
-    for sink in &alive_notes {
-        sink.play()
-    }
-    for sink in &dead_notes {
-        sink.pause()
-    }
-}
-

@@ -31,13 +31,13 @@ static KEYS: [(KeyCode, usize, usize); 24] = [
 
 pub fn keyboard_input_system(
     mut mapping_changed: EventWriter<UpdateNoteMapping>,
-    mut commands: Commands, 
     mut base_note: ResMut<BaseNote>,
     keyboard_input: Res<Input<KeyCode>>, 
-    query: Query<(Entity, &NotePosition)>,
-    playing: Query<&Playing>,
+    mut query: Query<(&NotePosition, &AudioSink, &mut Playing)>,
     mut chord_changed: ResMut<ChordJustChanged>,
 ) {
+
+    //chord_changed.0 = false;
 
     if keyboard_input.just_pressed(KeyCode::Right) {
         base_note.0 += 1;
@@ -50,16 +50,22 @@ pub fn keyboard_input_system(
         return
     }
 
-    for (e, note) in &query {
+    for (note, sink, mut playing) in &mut query {
         for (k, oclock, height) in KEYS {
             if note.oclock() == oclock && note.height() == height {
-                if keyboard_input.pressed(k) && !playing.get(e).is_ok() {
-                    commands.entity(e).insert(Playing);
+                if keyboard_input.pressed(k) && !playing.0 {
+                    chord_changed.0 = true;
+                    sink.play()
+                }
+                if !keyboard_input.pressed(k) && playing.0 {
                     chord_changed.0 = true;
                 }
-                if !keyboard_input.pressed(k) && playing.get(e).is_ok() {
-                    commands.entity(e).remove::<Playing>();
-                    chord_changed.0 = true;
+                if keyboard_input.pressed(k) {
+                    playing.0 = true;
+                }
+                if !keyboard_input.pressed(k) {
+                    playing.0 = false;
+                    sink.pause();
                 }
             }
         }

@@ -113,14 +113,15 @@ pub fn create_circle(
 }
 
 pub fn draw_notes(
-    mut new_notes: Query<&mut Visibility, (With<NotePosition>, With<Playing>, Without<Background>)>,
-    mut dead_notes: Query<&mut Visibility, (With<NotePosition>, Without<Playing>, Without<Background>)>
+    mut notes: Query<(&mut Visibility, &Playing), (With<NotePosition>,  Without<Background>)>,
     ) {
-    for mut visible in new_notes.iter_mut() {
-        *visible = Visibility::Visible;
-    }
-    for mut visible in dead_notes.iter_mut() {
-        *visible = Visibility::Hidden;
+    for (mut visible, playing) in notes.iter_mut() {
+        if playing.0 {
+            *visible = Visibility::Visible;
+        }
+        else {
+            *visible = Visibility::Hidden;
+        }
     }
 }
 
