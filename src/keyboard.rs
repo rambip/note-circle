@@ -1,45 +1,42 @@
 use bevy::prelude::*;
 
-use super::{Playing, NotePosition, BaseNote, UpdateNoteMapping, ChordChange};
+use super::{Playing, NotePosition, BaseNote, UpdateNoteMapping, ChordJustChanged};
 
-static KEYS2: [KeyCode; 12] = [
-    KeyCode::Key1, 
-    KeyCode::Key2, 
-    KeyCode::Key3,
-    KeyCode::Key4,
-    KeyCode::Key5,
-    KeyCode::Key6,
-    KeyCode::Key7,
-    KeyCode::Key8,
-    KeyCode::Key9,
-    KeyCode::Key0,
-    KeyCode::Minus,
-    KeyCode::Equals,
-];
-
-static KEYS1: [KeyCode; 12] = [
-    KeyCode::Q, 
-    KeyCode::W, 
-    KeyCode::E,
-    KeyCode::R,
-    KeyCode::T,
-    KeyCode::Y,
-    KeyCode::U,
-    KeyCode::I,
-    KeyCode::O,
-    KeyCode::P,
-    KeyCode::BracketLeft,
-    KeyCode::BracketRight,
+static KEYS: [(KeyCode, usize, usize); 24] = [
+    (KeyCode::Key1, 0, 1),
+    (KeyCode::Key2, 1, 1),
+    (KeyCode::Key3, 2, 1),
+    (KeyCode::Key4, 3, 1),
+    (KeyCode::Key5, 4, 1),
+    (KeyCode::Key6, 5, 1),
+    (KeyCode::Key7, 6, 1),
+    (KeyCode::Key8, 7, 1),
+    (KeyCode::Key9, 8, 1),
+    (KeyCode::Key0, 9, 1),
+    (KeyCode::Minus, 10, 1),
+    (KeyCode::Equals, 11, 1),
+    (KeyCode::Q, 00, 0),
+    (KeyCode::W, 01, 0),
+    (KeyCode::E, 02, 0),
+    (KeyCode::R, 03, 0),
+    (KeyCode::T, 04, 0),
+    (KeyCode::Y, 05, 0),
+    (KeyCode::U, 06, 0),
+    (KeyCode::I, 07, 0),
+    (KeyCode::O, 08, 0),
+    (KeyCode::P, 09, 0),
+    (KeyCode::BracketLeft, 10, 0),
+    (KeyCode::BracketRight, 11, 0),
 ];
 
 pub fn keyboard_input_system(
     mut mapping_changed: EventWriter<UpdateNoteMapping>,
-    mut chord_changed: EventWriter<ChordChange>,
     mut commands: Commands, 
     mut base_note: ResMut<BaseNote>,
     keyboard_input: Res<Input<KeyCode>>, 
-    query: Query<(Entity, &AudioSink, &NotePosition)>,
+    query: Query<(Entity, &NotePosition)>,
     playing: Query<&Playing>,
+    mut chord_changed: ResMut<ChordJustChanged>,
 ) {
 
     if keyboard_input.just_pressed(KeyCode::Right) {
@@ -53,33 +50,17 @@ pub fn keyboard_input_system(
         return
     }
 
-    for (e, sink, note) in &query {
-        if note.height() == 0 {
-            let k = KEYS1[note.oclock() as usize];
-            if keyboard_input.pressed(k) {
-                if playing.get(e).is_err() {
-                    chord_changed.send(ChordChange);
+    for (e, note) in &query {
+        for (k, oclock, height) in KEYS {
+            if note.oclock() == oclock && note.height() == height {
+                if keyboard_input.pressed(k) && !playing.get(e).is_ok() {
                     commands.entity(e).insert(Playing);
+                    chord_changed.0 = true;
                 }
-                sink.play()
-            }
-            else {
-                commands.entity(e).remove::<Playing>();
-                sink.pause()
-            }
-        }
-        if note.height() == 1 {
-            let k = KEYS2[note.oclock() as usize];
-            if keyboard_input.pressed(k) {
-                if playing.get(e).is_err() {
-                    chord_changed.send(ChordChange);
-                    commands.entity(e).insert(Playing);
+                if !keyboard_input.pressed(k) && playing.get(e).is_ok() {
+                    commands.entity(e).remove::<Playing>();
+                    chord_changed.0 = true;
                 }
-                sink.play()
-            }
-            else {
-                commands.entity(e).remove::<Playing>();
-                sink.pause()
             }
         }
     }

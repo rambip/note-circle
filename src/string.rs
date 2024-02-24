@@ -1,8 +1,12 @@
+use super::Note;
 use bevy::render::color::Color;
 use bevy::ecs::component::Component;
 use bevy::gizmos::gizmos::Gizmos;
 use bevy::math::f32::Vec2;
 use std::f32::consts::PI;
+
+
+const OFFSET: Vec2 = Vec2::new(300., 0.);
 
 #[derive(Clone, Debug, Component)]
 pub struct StringState {
@@ -11,20 +15,19 @@ pub struct StringState {
 }
 
 impl StringState {
-    pub fn new_sinusoid(n: usize) -> Self {
-        let t = (0..n)
-            .map(|x| x as f32 / n as f32);
-
-        let signal = t
-            .map(|s| if s < 3./4. {f32::sin(s*PI) + f32::sin(s*7.*PI)} else {0.});
-
-        // let signal = t
-        //     .map(|s| if s > 0.2 {f32::sin(s*PI)} else {f32::sin(s*PI)+3.*f32::sin(s*10.*PI)});
-
-        Self {
-            last: signal.clone().collect(),
-            current: signal.collect(),
+    pub fn add_sinusoid(&mut self, n: usize) {
+        let len = self.current.len();
+        assert!(len >= n);
+        for i in 0..n {
+            let x = i as f32 / n as f32;
+            let v = f32::sin(x*PI) 
+                + if x<0.3 {f32::sin(x*3.*PI)} else {0.}
+                + if x<0.1 {f32::sin(x*10.*PI)} else {0.}
+                ;
+            self.current[i] += v;
+            self.last[i] += v;
         }
+
     }
 
     pub fn new_flat(n: usize) -> Self {
@@ -32,10 +35,6 @@ impl StringState {
             last: vec![0.; n],
             current: vec![0.; n],
         }
-    }
-
-    pub fn n_samples(&self) -> usize {
-        self.current.len()
     }
 
     pub fn step(&mut self, p: &StringParams) {
@@ -53,18 +52,18 @@ impl StringState {
     pub fn draw(&self, p: &StringParams, mut gizmos: Gizmos) {
         let n = self.current.len();
         for i in 0..n {
-            let p = Vec2::new(
+            let p = OFFSET + Vec2::new(
                 -250. + i as f32 / n as f32 * p.length,
-                -250. + self.current[i]*250.
+                self.current[i]*150.
             );
             gizmos.circle_2d(p, 1., Color::BLUE);
         }
-        for &i in p.junctions.iter().chain(Some(&0)) {
-            let p = Vec2::new(
-                -250. + i as f32 / n as f32 * p.length,
-                -250. 
+        for note in p.chord.iter() {
+            let p = OFFSET + Vec2::new(
+                -250. + note.relative_length() * 500.,
+                0.
             );
-            gizmos.circle_2d(p, 1., Color::RED);
+            gizmos.circle_2d(p, 5., note.color());
         }
     }
 }
@@ -75,11 +74,18 @@ pub struct StringParams {
     pub n_samples: usize,
     pub dt: f32,
     pub c: f32,
-    pub junctions: Vec<usize>,
+    pub chord: Vec<Note>,
     pub spring_coeff: f32,
     pub solid_friction_coeff: f32,
     pub liquid_friction_coeff: f32,
     pub steps_per_render: usize,
+}
+
+impl StringParams {
+    fn is_junction(&self, i: usize) -> bool {
+        self.chord.iter()
+            .any(|note| (note.relative_length() * 150.) as usize == i)
+    }
 }
 
 fn compute_acceleration(p: &StringParams, state: &StringState) -> Vec<f32> {
@@ -101,7 +107,7 @@ fn compute_acceleration(p: &StringParams, state: &StringState) -> Vec<f32> {
         acc[i] = p.c*p.c*laplacian(i) - 
             p.liquid_friction_coeff*time_derivative(i)*time_derivative(i).abs();
 
-        if p.junctions.contains(&i) || i==0 || i==p.n_samples-1{
+        if p.is_junction(i) || i==0 || i==p.n_samples-1{
             acc[i] += - p.spring_coeff * state.current[i]
                       - p.solid_friction_coeff * time_derivative(i)
             ;

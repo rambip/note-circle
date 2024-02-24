@@ -10,12 +10,22 @@ use std::f32::consts::PI;
 const OUTER_CIRCLE_RAD: f32 = 180.;
 const NOTE_NAME_CIRCLE_RAD: f32 = 200.;
 const INNER_CIRCLE_RAD: f32 = 100.;
+const OFFSET: Vec3 = Vec3::new(-300., 0., -1.);
 
 #[derive(Component)]
 pub struct Background;
 
 #[derive(Component)]
 pub struct NoteNames;
+
+
+fn polar2(angle: f32, radius: f32) -> Vec2 {
+    radius * Vec2::from_angle(angle)
+}
+
+fn polar3(angle: f32, radius: f32, z: f32) -> Vec3 {
+    polar2(angle, radius).extend(z)
+}
 
 pub fn create_note_names(
     mut commands: Commands, 
@@ -41,7 +51,7 @@ pub fn create_note_names(
             let note_text = Text2dBundle {
                 text: Text::from_section(name, text_style.clone()),
                 transform: Transform::from_translation(
-                    NOTE_NAME_CIRCLE_RAD * Vec2::from_angle(angle.0).extend(1.)
+                    polar3(angle.0, NOTE_NAME_CIRCLE_RAD, -1.) + OFFSET
                 ),
                 ..default()
             };
@@ -61,7 +71,7 @@ pub fn create_circle(
     let bg_circle = MaterialMesh2dBundle {
         mesh: meshes.add(shape::Circle::new(OUTER_CIRCLE_RAD).into()).into(),
         material: materials.add(ColorMaterial::from(Color::WHITE)),
-        transform: Transform::from_translation(Vec3::new(0., 0., -2.)),
+        transform: Transform::from_translation(OFFSET),
         ..default()
     };
 
@@ -74,10 +84,10 @@ pub fn create_circle(
         let rad = INNER_CIRCLE_RAD + (OUTER_CIRCLE_RAD - INNER_CIRCLE_RAD) * range;
 
         let points = vec![
-                rad * Vec2::from_angle(angle.0 - 0.060 * PI).extend(-1.),
-                rad * Vec2::from_angle(angle.0 - 0.020 * PI).extend(-1.),
-                rad * Vec2::from_angle(angle.0 + 0.020 * PI).extend(-1.),
-                rad * Vec2::from_angle(angle.0 + 0.060 * PI).extend(-1.),
+                OFFSET + polar3(angle.0 - 0.060 * PI, rad, -1.),
+                OFFSET + polar3(angle.0 - 0.020 * PI, rad, -1.),
+                OFFSET + polar3(angle.0 + 0.020 * PI, rad, -1.),
+                OFFSET + polar3(angle.0 + 0.060 * PI, rad, -1.),
         ];
 
         let line = MaterialMesh2dBundle {
@@ -89,10 +99,11 @@ pub fn create_circle(
 
         commands.spawn((line, angle.clone(), Background));
 
+        let color = p.note(0).color();
         let circle = MaterialMesh2dBundle {
             mesh: meshes.add(shape::Circle::new(8.).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::RED)),
-            transform: Transform::from_translation(rad * Vec2::from_angle(angle.0).extend(1.)),
+            material: materials.add(color.into()),
+            transform: Transform::from_translation(polar3(angle.0, rad, 0.5) + OFFSET),
             ..default()
         };
 

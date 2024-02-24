@@ -57,7 +57,7 @@ pub fn create_samples(base_note: Res<BaseNote>,
 
     for (e, note) in &query {
         let sound = AudioSourceBundle {
-            source: assets.add(Synth::new(note.to_freq(base_note.0), SINE_SPECTRUM.into())),
+            source: assets.add(Synth::new(note.note(base_note.0).to_freq(), SINE_SPECTRUM.into())),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Remove,
                 ..Default::default()
