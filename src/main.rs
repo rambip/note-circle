@@ -165,13 +165,14 @@ fn init_string(
             params: StringParams {
                 length: 500.,
                 n_samples: N,
-                dt: 0.005,
-                c: 50.,
+                dt: 0.021,
+                c: 100.,
                 chord: vec![],
-                spring_coeff: 10.00,
+                spring_coeff: 1.00,
                 solid_friction_coeff: 20.,
-                liquid_friction_coeff: 0.005,
+                liquid_friction_coeff: 0.02,
                 steps_per_render: 100,
+                excitation_coeff: 0.05,
             },
             state: StringState::new_flat(N)
         }
@@ -217,9 +218,7 @@ fn change_string(
 
     for note_position in notes.iter() {
         let note = note_position.note(0);
-        let n = (N as f32 * note.relative_length()) as usize;
         p.chord.push(note);
-        s.add_sinusoid(n);
     }
 }
 

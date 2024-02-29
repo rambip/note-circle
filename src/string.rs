@@ -10,28 +10,15 @@ const OFFSET: Vec2 = Vec2::new(300., 0.);
 
 #[derive(Clone, Debug, Component)]
 pub struct StringState {
+    time: f32,
     last: Vec<f32>,
     current: Vec<f32>,
 }
 
 impl StringState {
-    pub fn add_sinusoid(&mut self, n: usize) {
-        let len = self.current.len();
-        assert!(len >= n);
-        for i in 0..n {
-            let x = i as f32 / n as f32;
-            let v = f32::sin(x*PI) 
-                + if x<0.3 {f32::sin(x*3.*PI)} else {0.}
-                + if x<0.1 {f32::sin(x*10.*PI)} else {0.}
-                ;
-            self.current[i] += v;
-            self.last[i] += v;
-        }
-
-    }
-
     pub fn new_flat(n: usize) -> Self {
         Self {
+            time: 0.,
             last: vec![0.; n],
             current: vec![0.; n],
         }
@@ -40,11 +27,18 @@ impl StringState {
     pub fn step(&mut self, p: &StringParams) {
         let acceleration = compute_acceleration(p, &self);
 
+        if self.current.len() == 0 {
+            return 
+        }
+
+        self.time += p.dt;
 
         for i in 0..p.n_samples {
             // attention: on inverse last et current dans
             self.last[i] = 2.*self.current[i]-self.last[i] + p.dt*p.dt*acceleration[i]
         }
+
+        self.last[0] = compute_excitation(p, &self);
         
         std::mem::swap(&mut self.last, &mut self.current);
     }
@@ -79,6 +73,7 @@ pub struct StringParams {
     pub solid_friction_coeff: f32,
     pub liquid_friction_coeff: f32,
     pub steps_per_render: usize,
+    pub excitation_coeff: f32,
 }
 
 impl StringParams {
@@ -86,6 +81,30 @@ impl StringParams {
         self.chord.iter()
             .any(|note| (note.relative_length() * 150.) as usize == i)
     }
+}
+
+fn triangle(t: f32) -> f32 {
+    let u = t % 1.;
+    if u < 0.5 {u-0.25} else {0.75-u}
+}
+
+fn rectangle(t: f32) -> f32 {
+    if t % 1. < 0.5 {-0.5} else {0.5}
+}
+
+fn sawtooth(t: f32) -> f32 {
+    t % 1. - 0.5
+}
+
+fn compute_excitation(p: &StringParams, state: &StringState) -> f32 {
+    let mut r = 0.;
+    let f = 0.5*p.c/500.;
+
+    for note in &p.chord {
+        r += p.excitation_coeff * sawtooth(f * state.time / note.relative_length())
+    }
+
+    r
 }
 
 fn compute_acceleration(p: &StringParams, state: &StringState) -> Vec<f32> {

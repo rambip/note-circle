@@ -37,7 +37,7 @@ pub fn keyboard_input_system(
     mut chord_changed: ResMut<ChordJustChanged>,
 ) {
 
-    //chord_changed.0 = false;
+    // TODO: use an event
 
     if keyboard_input.just_pressed(KeyCode::Right) {
         base_note.0 += 1;
