@@ -1,4 +1,4 @@
-use super::Note;
+use super::{Note, STRING_LENGTH};
 use bevy::render::color::Color;
 use bevy::ecs::component::Component;
 use bevy::gizmos::gizmos::Gizmos;
@@ -47,14 +47,14 @@ impl StringState {
         let n = self.current.len();
         for i in 0..n {
             let p = OFFSET + Vec2::new(
-                -250. + i as f32 / n as f32 * p.length,
-                self.current[i]*150.
+                -STRING_LENGTH/2. + i as f32 / n as f32 * p.length,
+                self.current[i]*STRING_LENGTH/3.
             );
             gizmos.circle_2d(p, 1., Color::BLUE);
         }
         for note in p.chord.iter() {
             let p = OFFSET + Vec2::new(
-                -250. + note.relative_length() * 500.,
+                -STRING_LENGTH/2. + note.relative_length() * STRING_LENGTH,
                 0.
             );
             gizmos.circle_2d(p, 5., note.color());
@@ -83,25 +83,29 @@ impl StringParams {
     }
 }
 
-fn triangle(t: f32) -> f32 {
+fn _triangle(t: f32) -> f32 {
     let u = t % 1.;
     if u < 0.5 {u-0.25} else {0.75-u}
 }
 
-fn rectangle(t: f32) -> f32 {
+fn _rectangle(t: f32) -> f32 {
     if t % 1. < 0.5 {-0.5} else {0.5}
 }
 
-fn sawtooth(t: f32) -> f32 {
+fn _sawtooth(t: f32) -> f32 {
     t % 1. - 0.5
+}
+
+fn spikes(t: f32) -> f32 {
+    1./(1.4 - f32::cos(2.*PI*t)) - 1.
 }
 
 fn compute_excitation(p: &StringParams, state: &StringState) -> f32 {
     let mut r = 0.;
-    let f = 0.5*p.c/500.;
+    let f = 0.5*p.c/STRING_LENGTH;
 
     for note in &p.chord {
-        r += p.excitation_coeff * sawtooth(f * state.time / note.relative_length())
+        r += p.excitation_coeff * spikes(f * state.time / note.relative_length())
     }
 
     r

@@ -17,6 +17,8 @@ const BASE_FREQUENCY: f32 = 55.0;
 
 const N_OCTAVES : usize = 2;
 
+const STRING_LENGTH: f32 = 500.;
+
 mod sound;
 use sound::{Synth, create_samples};
 
@@ -58,6 +60,10 @@ impl NotePosition {
     fn note(&self, base_note: usize) -> Note {
         let i = self.0 + base_note;
         Note(i as f32 / 12.0)
+    }
+
+    fn angle(&self) -> Angle {
+        Angle(PI/2. - 2. * PI * (self.oclock() as f32) / 12.)
     }
 
     fn name(&self, base_note: usize) -> &'static str {
@@ -128,7 +134,7 @@ fn setup(
         for i in 0..12 {
             let note_pos = NotePosition::new(i, height);
 
-            let angle = Angle(PI/2. - 2. * PI * (i as f32) / 12.);
+            let angle = note_pos.angle();
             commands.spawn((note_pos, angle, Playing(false)));
         }
     }
@@ -163,15 +169,15 @@ fn init_string(
     commands.spawn(
         VibratingString {
             params: StringParams {
-                length: 500.,
+                length: STRING_LENGTH,
                 n_samples: N,
-                dt: 0.021,
+                dt: 0.02,
                 c: 100.,
                 chord: vec![],
-                spring_coeff: 1.00,
-                solid_friction_coeff: 20.,
-                liquid_friction_coeff: 0.02,
-                steps_per_render: 100,
+                spring_coeff: 10.00,
+                solid_friction_coeff: 50.,
+                liquid_friction_coeff: 0.015,
+                steps_per_render: 10,
                 excitation_coeff: 0.05,
             },
             state: StringState::new_flat(N)
@@ -219,6 +225,10 @@ fn change_string(
     for note_position in notes.iter() {
         let note = note_position.note(0);
         p.chord.push(note);
+    }
+
+    for _ in 0..(p.length/p.dt) as usize{
+        s.step(&p);
     }
 }
 
